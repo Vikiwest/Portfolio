@@ -10,9 +10,12 @@ const PORT = process.env.PORT || 5000; // Ensure to fallback to 5000 if not prov
 // Middleware
 app.use(
   cors({
-    origin: "https://portfoliofront-nppt.onrender.com/", // Allow requests from your frontend's URL
+    origin: "https://portfoliofront-nppt.onrender.com", // Allow this origin
+    methods: ["GET", "POST", "OPTIONS"], // Specify allowed methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Specify allowed headers
   })
 );
+
 app.use(express.json()); // To parse JSON bodies
 
 // Route to send email
