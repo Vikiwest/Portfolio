@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
@@ -158,4 +158,4 @@ app.post("/send-email", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
->>>>>>> e3f1711786fd426e4ddaa6b9b7dacbd560ebe482
+
