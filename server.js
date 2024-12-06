@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000; // Ensure to fallback to 5000 if not prov
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:5173", // Allow requests from your frontend's URL
+    origin: "http://localhost:3000", // Allow requests from your frontend's URL
   })
 );
 app.use(express.json()); // To parse JSON bodies
