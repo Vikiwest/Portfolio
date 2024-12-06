@@ -1,7 +1,6 @@
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
-const path = require("path"); // Import path module
 require("dotenv").config(); // To load environment variables
 
 const app = express();
@@ -15,8 +14,7 @@ app.use(
 );
 app.use(express.json()); // To parse JSON bodies
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, '/PortfolioFront/build'))); 
+
 
 // Route to send email
 app.post("/send-email", async (req, res) => {
@@ -38,7 +36,7 @@ app.post("/send-email", async (req, res) => {
       to: process.env.EMAIL, // Your email (destination)
       subject: `New Message from ${name}`,
       html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; border-radius: 10px;">
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; border-radius: 10px ;">
           <h2 style="color: #333;">New Message from ${name}</h2>
           <p><strong>Sender:</strong> ${email}</p>
           <p><strong>Message:</strong></p>
@@ -54,7 +52,7 @@ app.post("/send-email", async (req, res) => {
         <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
           <h2 style="color: #333;">Thank you for your message, ${name}!</h2>
           <p>We have received your message and will get back to you shortly.</p>
-          <p>Best regards,<br>Olorunda Victory</p>
+         <p>Best regards,<br>Olorunda Victory</p>
         </div>`,
     };
 
@@ -74,10 +72,7 @@ app.post("/send-email", async (req, res) => {
   }
 });
 
-// Catch-all route to serve the React app for any other routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '/PortfolioFront/build', 'index.html')); // Adjust the path as necessary
-});
+
 
 // Start the server
 app.listen(PORT, () => {
