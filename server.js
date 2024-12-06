@@ -16,7 +16,7 @@ app.use(
 app.use(express.json()); // To parse JSON bodies
 
 // Serve static files from the React app
-app.use(express.static(path.join(__dirname, '/PortfolioFront/dist'))); 
+app.use(express.static(path.join(__dirname, '/PortfolioFront/build'))); 
 
 // Route to send email
 app.post("/send-email", async (req, res) => {
@@ -76,7 +76,7 @@ app.post("/send-email", async (req, res) => {
 
 // Catch-all route to serve the React app for any other routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '/PortfolioFront/dist', 'index.html')); // Adjust the path as necessary
+  res.sendFile(path.join(__dirname, '/PortfolioFront/build', 'index.html')); // Adjust the path as necessary
 });
 
 // Start the server
