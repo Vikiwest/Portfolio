@@ -11,7 +11,7 @@ const allowedOrigins = [
   "https://portfoliofront-nppt.onrender.com", // React frontend URL for local development
 ];
 
-// "https://portfoliofront-nppt.onrender.com", 
+// "https://portfoliofront-nppt.onrender.com",
 // // Allow requests from your frontend's URL
 
 app.use(
@@ -27,9 +27,6 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
-
-
 
 app.use(express.json()); // To parse JSON bodies
 
@@ -89,9 +86,11 @@ app.post("/send-email", async (req, res) => {
   }
 });
 
-
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
+});
