@@ -7,27 +7,13 @@ const app = express();
 const PORT = process.env.PORT || 5000; // Ensure to fallback to 5000 if not provided
 
 // Middleware
-const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
 app.use(
   cors({
-    origin: (origin, callback) => {
-      console.log('Origin:', origin); // Log the origin to see what’s being sent
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "OPTIONS"], // Specify allowed methods
+    origin: "https://portfoliofront-nppt.onrender.com", // Allow requests from your frontend's URL
+     methods: ["GET", "POST", "OPTIONS"], // Specify allowed methods
     allowedHeaders: ["Content-Type", "Authorization"], // Specify allowed headers
   })
 );
-
-
-// Handle OPTIONS preflight requests for all routes
-app.options('*', cors());  // This allows pre-flight requests to all routes
-
-
 app.use(express.json()); // To parse JSON bodies
 
 // Route to send email
@@ -39,12 +25,9 @@ app.post("/send-email", async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASSWORD,
+        user: process.env.EMAIL, // Your email (from .env)
+        pass: process.env.EMAIL_PASSWORD, // Your Gmail app password (from .env)
       },
-      host: "smtp.gmail.com",
-      port: 465, // or 587 for TLS
-      secure: true, // true for 465, false for other ports
     });
 
     const mailOptions = {
@@ -94,3 +77,4 @@ app.post("/send-email", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
