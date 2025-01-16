@@ -7,13 +7,30 @@ const app = express();
 const PORT = process.env.PORT || 5000; // Ensure to fallback to 5000 if not provided
 
 // Middleware
+const allowedOrigins = [
+  "https://portfoliofront-nppt.onrender.com", // React frontend URL for local development
+];
+
+// "https://portfoliofront-nppt.onrender.com", 
+// // Allow requests from your frontend's URL
+
 app.use(
   cors({
-    origin: "https://portfoliofront-nppt.onrender.com", // Allow requests from your frontend's URL
-     methods: ["GET", "POST", "OPTIONS"], // Specify allowed methods
-    allowedHeaders: ["Content-Type", "Authorization"], // Specify allowed headers
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true); // Allow the request if origin matches
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+
+
+
 app.use(express.json()); // To parse JSON bodies
 
 // Route to send email
