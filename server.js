@@ -100,7 +100,7 @@ const validateEmailInput = (data) => {
   }
 
   return errors;
-  // 
+  //
 };
 
 // Email template functions with your portfolio theme
@@ -598,19 +598,20 @@ app.post("/send-email", emailLimiter, async (req, res) => {
 
     // Create transporter with more options
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false, // Use TLS
       auth: {
         user: process.env.EMAIL,
         pass: process.env.EMAIL_PASSWORD,
       },
-      connectionTimeout: 10000,
-      socketTimeout: 15000,
-      secure: true,
+      connectionTimeout: 30000, // Increase timeout
+      socketTimeout: 30000,
+      greetingTimeout: 30000,
       tls: {
         rejectUnauthorized: false,
       },
     });
-
     console.log("Transporter created, attempting to verify...");
 
     // Verify transporter configuration
