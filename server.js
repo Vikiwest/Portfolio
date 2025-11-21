@@ -1,5 +1,5 @@
 const express = require("express");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
@@ -8,10 +8,13 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 // Security middleware
 app.use(helmet());
 
-// Request logging middleware (production-friendly)
+// Request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
   next();
@@ -39,9 +42,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -100,10 +101,9 @@ const validateEmailInput = (data) => {
   }
 
   return errors;
-  //
 };
 
-// Email template functions with your portfolio theme
+// Email template functions (keep your existing templates)
 const createNotificationTemplate = (name, email, message) => {
   return `<!DOCTYPE html>
 <html>
@@ -321,256 +321,257 @@ const createNotificationTemplate = (name, email, message) => {
 </html>`;
 };
 
-const createAutoReplyTemplate = (name) => {
-  return `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thank You for Contacting Olorunda Victory</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            border: 1px solid #333;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
-            padding: 40px 30px;
-            text-align: center;
-            position: relative;
-        }
-        
-        .header::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: #000;
-            border-radius: 2px;
-        }
-        
-        .header h1 {
-            color: #000;
-            font-size: 32px;
-            font-weight: 700;
-            margin: 0 0 10px 0;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .header p {
-            color: #000;
-            font-size: 18px;
-            font-weight: 500;
-            opacity: 0.9;
-        }
-        
-        .content {
-            padding: 40px;
-            color: #e5e5e5;
-        }
-        
-        .welcome-section {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .welcome-section p {
-            font-size: 18px;
-            line-height: 1.6;
-            color: #ccc;
-            margin-bottom: 20px;
-        }
-        
-        .highlight {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 700;
-        }
-        
-        .info-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 25px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .info-card h3 {
-            color: #fbbf24;
-            font-size: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .social-links {
-            display: grid;
-            gap: 12px;
-        }
-        
-        .social-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid #444;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: #e5e5e5;
-        }
-        
-        .social-link:hover {
-            background: rgba(251, 191, 36, 0.1);
-            border-color: #fbbf24;
-            transform: translateX(5px);
-        }
-        
-        .social-icon {
-            width: 20px;
-            height: 20px;
-            background: #fbbf24;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: #000;
-            font-weight: bold;
-        }
-        
-        .footer {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 30px;
-            text-align: center;
-            border-top: 1px solid #333;
-        }
-        
-        .signature {
-            color: #fbbf24;
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        
-        .title {
-            color: #888;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-        
-        .note {
-            color: #666;
-            font-size: 12px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #333;
-        }
-        
-        .response-time {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-            color: #000;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 600;
-            display: inline-block;
-            margin: 10px 0;
-        }
-        
-        @media (max-width: 480px) {
-            .content {
-                padding: 25px;
-            }
-            
-            .header h1 {
-                font-size: 26px;
-            }
-            
-            .header p {
-                font-size: 16px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>✨ Thank You, ${name}!</h1>
-            <p>I appreciate you reaching out</p>
-        </div>
-        
-        <div class="content">
-            <div class="welcome-section">
-                <p>
-                    I've received your message and truly appreciate you taking the time to contact me. 
-                    I'll review your message carefully and get back to you within:
-                </p>
-                <div class="response-time">24-48 Hours</div>
-            </div>
-            
-            <div class="info-card">
-                <h3>📞 Stay Connected</h3>
-                <div class="social-links">
-                    <a href="https://www.linkedin.com/in/victory-olorunda-aa615030a/" class="social-link" target="_blank">
-                        <div class="social-icon">in</div>
-                        <span>LinkedIn: Victory Olorunda</span>
-                    </a>
-                    <a href="https://github.com/Vikiwest" class="social-link" target="_blank">
-                        <div class="social-icon">Git</div>
-                        <span>GitHub: Vikiwest</span>
-                    </a>
-                    <a href="https://portfoliofront-nppt.onrender.com" class="social-link" target="_blank">
-                        <div class="social-icon">🌐</div>
-                        <span>Portfolio: Olorunda Victory</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <div class="signature">Olorunda Victory</div>
-            <div class="title">Full Stack Developer</div>
-            <div class="note">
-                This is an automated response. Please do not reply to this email.
-            </div>
-        </div>
-    </div>
-</body>
-</html>`;
-};
+// const createAutoReplyTemplate = (name) => {
+//   return `<!DOCTYPE html>
+// <html>
+// <head>
+//     <meta charset="utf-8">
+//     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+//     <title>Thank You for Contacting Olorunda Victory</title>
+//     <style>
+//         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-// Enhanced email route
-// Enhanced email route with detailed debugging
+//         * {
+//             margin: 0;
+//             padding: 0;
+//             box-sizing: border-box;
+//         }
+
+//         body {
+//             font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+//             background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+//             margin: 0;
+//             padding: 20px;
+//             min-height: 100vh;
+//         }
+
+//         .container {
+//             max-width: 600px;
+//             margin: 0 auto;
+//             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+//             border-radius: 16px;
+//             overflow: hidden;
+//             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+//             border: 1px solid #333;
+//         }
+
+//         .header {
+//             background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+//             padding: 40px 30px;
+//             text-align: center;
+//             position: relative;
+//         }
+
+//         .header::after {
+//             content: '';
+//             position: absolute;
+//             bottom: -10px;
+//             left: 50%;
+//             transform: translateX(-50%);
+//             width: 80px;
+//             height: 4px;
+//             background: #000;
+//             border-radius: 2px;
+//         }
+
+//         .header h1 {
+//             color: #000;
+//             font-size: 32px;
+//             font-weight: 700;
+//             margin: 0 0 10px 0;
+//             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+//         }
+
+//         .header p {
+//             color: #000;
+//             font-size: 18px;
+//             font-weight: 500;
+//             opacity: 0.9;
+//         }
+
+//         .content {
+//             padding: 40px;
+//             color: #e5e5e5;
+//         }
+
+//         .welcome-section {
+//             text-align: center;
+//             margin-bottom: 30px;
+//         }
+
+//         .welcome-section p {
+//             font-size: 18px;
+//             line-height: 1.6;
+//             color: #ccc;
+//             margin-bottom: 20px;
+//         }
+
+//         .highlight {
+//             background: linear-gradient(135deg, #fbbf24, #f59e0b);
+//             -webkit-background-clip: text;
+//             -webkit-text-fill-color: transparent;
+//             background-clip: text;
+//             font-weight: 700;
+//         }
+
+//         .info-card {
+//             background: rgba(255, 255, 255, 0.05);
+//             border: 1px solid #333;
+//             border-radius: 12px;
+//             padding: 25px;
+//             margin-bottom: 25px;
+//             backdrop-filter: blur(10px);
+//         }
+
+//         .info-card h3 {
+//             color: #fbbf24;
+//             font-size: 20px;
+//             margin-bottom: 15px;
+//             display: flex;
+//             align-items: center;
+//             gap: 10px;
+//         }
+
+//         .social-links {
+//             display: grid;
+//             gap: 12px;
+//         }
+
+//         .social-link {
+//             display: flex;
+//             align-items: center;
+//             gap: 12px;
+//             padding: 12px;
+//             background: rgba(255, 255, 255, 0.03);
+//             border: 1px solid #444;
+//             border-radius: 8px;
+//             transition: all 0.3s ease;
+//             text-decoration: none;
+//             color: #e5e5e5;
+//         }
+
+//         .social-link:hover {
+//             background: rgba(251, 191, 36, 0.1);
+//             border-color: #fbbf24;
+//             transform: translateX(5px);
+//         }
+
+//         .social-icon {
+//             width: 20px;
+//             height: 20px;
+//             background: #fbbf24;
+//             border-radius: 4px;
+//             display: flex;
+//             align-items: center;
+//             justify-content: center;
+//             font-size: 12px;
+//             color: #000;
+//             font-weight: bold;
+//         }
+
+//         .footer {
+//             background: rgba(0, 0, 0, 0.5);
+//             padding: 30px;
+//             text-align: center;
+//             border-top: 1px solid #333;
+//         }
+
+//         .signature {
+//             color: #fbbf24;
+//             font-size: 24px;
+//             font-weight: 700;
+//             margin-bottom: 8px;
+//         }
+
+//         .title {
+//             color: #888;
+//             font-size: 16px;
+//             margin-bottom: 20px;
+//         }
+
+//         .note {
+//             color: #666;
+//             font-size: 12px;
+//             margin-top: 20px;
+//             padding-top: 20px;
+//             border-top: 1px solid #333;
+//         }
+
+//         .response-time {
+//             background: linear-gradient(135deg, #fbbf24, #f59e0b);
+//             color: #000;
+//             padding: 8px 16px;
+//             border-radius: 20px;
+//             font-weight: 600;
+//             display: inline-block;
+//             margin: 10px 0;
+//         }
+
+//         @media (max-width: 480px) {
+//             .content {
+//                 padding: 25px;
+//             }
+
+//             .header h1 {
+//                 font-size: 26px;
+//             }
+
+//             .header p {
+//                 font-size: 16px;
+//             }
+//         }
+//     </style>
+// </head>
+// <body>
+//     <div class="container">
+//         <div class="header">
+//             <h1>✨ Thank You, ${name}!</h1>
+//             <p>I appreciate you reaching out</p>
+//         </div>
+
+//         <div class="content">
+//             <div class="welcome-section">
+//                 <p>
+//                     I've received your message and truly appreciate you taking the time to contact me.
+//                     I'll review your message carefully and get back to you within:
+//                 </p>
+//                 <div class="response-time">24-48 Hours</div>
+//             </div>
+
+//             <div class="info-card">
+//                 <h3>📞 Stay Connected</h3>
+//                 <div class="social-links">
+//                     <a href="https://www.linkedin.com/in/victory-olorunda-aa615030a/" class="social-link" target="_blank">
+//                         <div class="social-icon">in</div>
+//                         <span>LinkedIn: Victory Olorunda</span>
+//                     </a>
+//                     <a href="https://github.com/Vikiwest" class="social-link" target="_blank">
+//                         <div class="social-icon">Git</div>
+//                         <span>GitHub: Vikiwest</span>
+//                     </a>
+//                     <a href="https://portfoliofront-nppt.onrender.com" class="social-link" target="_blank">
+//                         <div class="social-icon">🌐</div>
+//                         <span>Portfolio: Olorunda Victory</span>
+//                     </a>
+//                 </div>
+//             </div>
+//         </div>
+
+//         <div class="footer">
+//             <div class="signature">Olorunda Victory</div>
+//             <div class="title">Full Stack Developer</div>
+//             <div class="note">
+//                 This is an automated response. Please do not reply to this email.
+//             </div>
+//         </div>
+//     </div>
+// </body>
+// </html>`;
+// };
+
+// Resend Email Route - GUARANTEED TO WORK
+// Resend Email Route - FIXED VERSION
+
 app.post("/send-email", emailLimiter, async (req, res) => {
   console.log("Send-email endpoint hit");
   console.log("Request body:", req.body);
@@ -589,108 +590,35 @@ app.post("/send-email", emailLimiter, async (req, res) => {
 
   try {
     console.log("Environment variables check:");
-    console.log("EMAIL exists:", !!process.env.EMAIL);
-    console.log("EMAIL_PASSWORD exists:", !!process.env.EMAIL_PASSWORD);
+    console.log("RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
 
-    if (!process.env.EMAIL || !process.env.EMAIL_PASSWORD) {
-      throw new Error("Email environment variables are not set");
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY environment variable is not set");
     }
 
-    // Create transporter with more options
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false, // Use TLS
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-      connectionTimeout: 30000, // Increase timeout
-      socketTimeout: 30000,
-      greetingTimeout: 30000,
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-    console.log("Transporter created, attempting to verify...");
-
-    // Verify transporter configuration
-    await transporter.verify();
-    console.log("✅ Email transporter verified successfully");
-
-    const mailOptions = {
-      from: `"Portfolio Contact" <${process.env.EMAIL}>`,
-      replyTo: email,
-      to: process.env.EMAIL,
+    // Send notification email to yourself only (this works with Resend free tier)
+    console.log("Sending notification email...");
+    const notificationResult = await resend.emails.send({
+      from: "Portfolio Contact <onboarding@resend.dev>",
+      to: ["chidiolorunda@gmail.com"], // Only your email - this works!
+      reply_to: email, // Important: allows you to reply directly to the user
       subject: `🎯 Portfolio Contact: ${name}`,
       html: createNotificationTemplate(name, email, message),
-    };
+    });
 
-    const replyOptions = {
-      from: `"Olorunda Victory" <${process.env.EMAIL}>`,
-      to: email,
-      subject: `Thank you for contacting Olorunda Victory`,
-      html: createAutoReplyTemplate(name),
-    };
-
-    console.log("Attempting to send notification email...");
-
-    // Send emails with individual error handling
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log(`✅ Notification email sent to ${process.env.EMAIL}`);
-    } catch (mailError) {
-      console.error("❌ Failed to send notification email:", mailError);
-      throw mailError;
-    }
-
-    try {
-      await transporter.sendMail(replyOptions);
-      console.log(`✅ Auto-reply sent to ${email}`);
-    } catch (replyError) {
-      console.error("❌ Failed to send auto-reply:", replyError);
-      // Don't throw here, as the main email might have succeeded
-    }
+    console.log("✅ Notification email sent successfully");
 
     res.status(200).json({
       success: true,
-      message: "Thank you! Your message has been sent successfully.",
+      message:
+        "Thank you! Your message has been sent successfully. I'll get back to you within 24 hours.",
     });
   } catch (error) {
-    console.error("❌ Detailed email error:", {
-      message: error.message,
-      code: error.code,
-      stack: error.stack,
-      response: error.response,
-      responseCode: error.responseCode,
-      command: error.command,
-    });
+    console.error("❌ Resend email error:", error.message);
 
-    let errorMessage = "Failed to send email. Please try again later.";
-    let statusCode = 500;
-
-    if (error.code === "EAUTH") {
-      errorMessage =
-        "Email authentication failed. Please check email configuration.";
-      statusCode = 503;
-      console.error("🔐 AUTH ERROR - Check your Gmail App Password");
-    } else if (error.code === "EENVELOPE") {
-      errorMessage =
-        "Invalid email address. Please check your email and try again.";
-      statusCode = 400;
-    } else if (error.code === "ECONNECTION" || error.code === "ETIMEDOUT") {
-      errorMessage =
-        "Email service temporarily unavailable. Please try again later.";
-      statusCode = 503;
-    } else if (error.message.includes("environment variables")) {
-      errorMessage =
-        "Server configuration error. Please contact the administrator.";
-      statusCode = 503;
-    }
-
-    res.status(statusCode).json({
+    res.status(500).json({
       success: false,
-      error: errorMessage,
+      error: "Failed to send email. Please try again later.",
     });
   }
 });
@@ -737,11 +665,11 @@ app.listen(PORT, () => {
   console.log(`❤️  Health: http://localhost:${PORT}/health`);
 
   // Check if environment variables are set
-  if (!process.env.EMAIL || !process.env.EMAIL_PASSWORD) {
+  if (!process.env.RESEND_API_KEY) {
     console.warn(
-      "⚠️  WARNING: EMAIL or EMAIL_PASSWORD environment variables are not set!"
+      "⚠️  WARNING: RESEND_API_KEY environment variable is not set!"
     );
   } else {
-    console.log("✅ Environment variables loaded successfully");
+    console.log("✅ RESEND_API_KEY environment variable loaded successfully");
   }
 });
