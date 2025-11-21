@@ -313,7 +313,7 @@ const createNotificationTemplate = (name, email, message) => {
         <div class="footer">
             <div class="signature">Olorunda Victory</div>
             <div style="color: #888; font-size: 14px; margin-bottom: 15px;">Full Stack Developer</div>
-            <a href="https://your-portfolio-url.com" class="portfolio-link">View Portfolio</a>
+            <a href="https://portfoliofront-nppt.onrender.com" class="portfolio-link">View Portfolio</a>
         </div>
     </div>
 </body>
@@ -548,7 +548,7 @@ const createAutoReplyTemplate = (name) => {
                         <div class="social-icon">Git</div>
                         <span>GitHub: Vikiwest</span>
                     </a>
-                    <a href="https://your-portfolio-url.com" class="social-link" target="_blank">
+                    <a href="https://portfoliofront-nppt.onrender.com" class="social-link" target="_blank">
                         <div class="social-icon">🌐</div>
                         <span>Portfolio: Olorunda Victory</span>
                     </a>
