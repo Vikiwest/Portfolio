@@ -102,7 +102,9 @@ const validateEmailInput = (data) => {
 };
 
 // Email template functions with your portfolio theme
-const createNotificationTemplate = (name, email, message) => `
+const createNotificationTemplate = (name, email, message) => {
+  return;
+  `
 <!DOCTYPE html>
 <html>
 <head>
@@ -317,8 +319,11 @@ const createNotificationTemplate = (name, email, message) => `
     </div>
 </body>
 </html>`;
+};
 
-const createAutoReplyTemplate = (name) => `
+const createAutoReplyTemplate = (name) => {
+  return;
+  `
 <!DOCTYPE html>
 <html>
 <head>
@@ -564,6 +569,8 @@ const createAutoReplyTemplate = (name) => `
     </div>
 </body>
 </html>`;
+};
+
 // Enhanced email route
 app.post("/send-email", emailLimiter, async (req, res) => {
   console.log("Send-email endpoint hit");
