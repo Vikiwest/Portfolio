@@ -103,9 +103,7 @@ const validateEmailInput = (data) => {
 
 // Email template functions with your portfolio theme
 const createNotificationTemplate = (name, email, message) => {
-  return;
-  `
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -322,9 +320,7 @@ const createNotificationTemplate = (name, email, message) => {
 };
 
 const createAutoReplyTemplate = (name) => {
-  return;
-  `
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
