@@ -71,6 +71,7 @@ app.get("/", (req, res) => {
   });
 });
 
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -80,6 +81,7 @@ app.get("/health", (req, res) => {
     uptime: process.uptime(),
   });
 });
+
 
 // Email validation function
 const validateEmailInput = (data) => {
