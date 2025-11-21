@@ -568,14 +568,17 @@ const createAutoReplyTemplate = (name) => {
 };
 
 // Enhanced email route
+// Enhanced email route with detailed debugging
 app.post("/send-email", emailLimiter, async (req, res) => {
   console.log("Send-email endpoint hit");
+  console.log("Request body:", req.body);
 
   const { name, email, message } = req.body;
 
   // Input validation
   const validationErrors = validateEmailInput(req.body);
   if (validationErrors.length > 0) {
+    console.log("Validation errors:", validationErrors);
     return res.status(400).json({
       success: false,
       errors: validationErrors,
@@ -583,21 +586,34 @@ app.post("/send-email", emailLimiter, async (req, res) => {
   }
 
   try {
-    // Create transporter
+    console.log("Environment variables check:");
+    console.log("EMAIL exists:", !!process.env.EMAIL);
+    console.log("EMAIL_PASSWORD exists:", !!process.env.EMAIL_PASSWORD);
+
+    if (!process.env.EMAIL || !process.env.EMAIL_PASSWORD) {
+      throw new Error("Email environment variables are not set");
+    }
+
+    // Create transporter with more options
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: process.env.EMAIL,
         pass: process.env.EMAIL_PASSWORD,
       },
-      // Optional: Add timeout settings
       connectionTimeout: 10000,
-      socketTimeout: 10000,
+      socketTimeout: 15000,
+      secure: true,
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
+
+    console.log("Transporter created, attempting to verify...");
 
     // Verify transporter configuration
     await transporter.verify();
-    console.log("Email transporter verified");
+    console.log("✅ Email transporter verified successfully");
 
     const mailOptions = {
       from: `"Portfolio Contact" <${process.env.EMAIL}>`,
@@ -614,26 +630,47 @@ app.post("/send-email", emailLimiter, async (req, res) => {
       html: createAutoReplyTemplate(name),
     };
 
-    // Send emails
-    await transporter.sendMail(mailOptions);
-    console.log(`Notification email sent to ${process.env.EMAIL}`);
+    console.log("Attempting to send notification email...");
 
-    await transporter.sendMail(replyOptions);
-    console.log(`Auto-reply sent to ${email}`);
+    // Send emails with individual error handling
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log(`✅ Notification email sent to ${process.env.EMAIL}`);
+    } catch (mailError) {
+      console.error("❌ Failed to send notification email:", mailError);
+      throw mailError;
+    }
+
+    try {
+      await transporter.sendMail(replyOptions);
+      console.log(`✅ Auto-reply sent to ${email}`);
+    } catch (replyError) {
+      console.error("❌ Failed to send auto-reply:", replyError);
+      // Don't throw here, as the main email might have succeeded
+    }
 
     res.status(200).json({
       success: true,
       message: "Thank you! Your message has been sent successfully.",
     });
   } catch (error) {
-    console.error("Email error:", error);
+    console.error("❌ Detailed email error:", {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      response: error.response,
+      responseCode: error.responseCode,
+      command: error.command,
+    });
 
     let errorMessage = "Failed to send email. Please try again later.";
     let statusCode = 500;
 
     if (error.code === "EAUTH") {
-      errorMessage = "Email service configuration error.";
+      errorMessage =
+        "Email authentication failed. Please check email configuration.";
       statusCode = 503;
+      console.error("🔐 AUTH ERROR - Check your Gmail App Password");
     } else if (error.code === "EENVELOPE") {
       errorMessage =
         "Invalid email address. Please check your email and try again.";
@@ -641,6 +678,10 @@ app.post("/send-email", emailLimiter, async (req, res) => {
     } else if (error.code === "ECONNECTION" || error.code === "ETIMEDOUT") {
       errorMessage =
         "Email service temporarily unavailable. Please try again later.";
+      statusCode = 503;
+    } else if (error.message.includes("environment variables")) {
+      errorMessage =
+        "Server configuration error. Please contact the administrator.";
       statusCode = 503;
     }
 
