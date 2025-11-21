@@ -99,6 +99,7 @@ const validateEmailInput = (data) => {
   }
 
   return errors;
+  // 
 };
 
 // Email template functions with your portfolio theme
